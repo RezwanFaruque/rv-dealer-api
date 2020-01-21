@@ -1,0 +1,56 @@
+# PHP CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-php/ for more details
+#
+version: 2
+jobs:
+    build:
+        docker:
+            # Language Image
+            - image: circleci/php:7.2-node-browsers
+
+            # Service Images
+            # - image: circleci/mysql:8-ram
+            # - image: redis:2.8.19
+
+        working_directory: ~/repo
+
+        steps:
+            - checkout
+
+            - run: sudo apt update
+            # - run: sudo apt update && sudo apt install zlib1g-dev libsqlite3-dev
+            # - run: sudo docker-php-ext-install bcmath
+            - run:
+                  name: Disable Xdebug
+                  command: sudo rm /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+
+            # Composer Cache
+            - restore_cache:
+                  keys:
+                      - dependencies-composer-{{ checksum "composer.json" }}
+                      - dependencies-composer-
+            - run: composer install -n --prefer-dist --ignore-platform-reqs
+            - save_cache:
+                  key: dependencies-composer-{{ checksum "composer.json" }}
+                  paths:
+                      - ./vendor
+
+            # Node Cache
+            - restore_cache:
+                  keys:
+                      - dependencies-node-{{ checksum "package.json" }}
+                      - dependencies-node-
+            - run: yarn install
+            # - run: yarn prod
+            - save_cache:
+                  key: dependencies-node-{{ checksum "package.json" }}
+                  paths:
+                      - ./node_modules
+
+            # Prepare Database
+            - run: touch storage/testing.sqlite
+            - run: php artisan migrate --env=testing --database=sqlite_testing --force
+
+            # run tests
+            - run: ./vendor/bin/phpunit --verbose
