@@ -13,7 +13,7 @@
         "cloudcreativity/laravel-json-api": "^1.0",
         "doctrine/dbal": "^2.9",
         "fideloper/proxy": "^4.0",
-        "laravel/framework": "5.7.*",
+        "laravel/framework": "6.18.*",
         "laravel/passport": "7.*",
         "laravel/socialite": "^4.3",
         "laravel/tinker": "^1.0"
